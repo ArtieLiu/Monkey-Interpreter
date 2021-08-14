@@ -12,8 +12,8 @@ const (
 	EOF     = "EOF"
 
 	// Identifiers + literals
-	IDENT   = "IDENT" // add, foobar, x, y, ...
-	INT     = "INT"
+	IDENT = "IDENT" // add, foobar, x, y, ...
+	INT   = "INT"
 
 	ASSIGN = "="
 	PLUS   = "+"
@@ -31,3 +31,17 @@ const (
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 )
+
+var SPECIALCHARLIST = []byte{',', ';', '(', ')', '{', '}', '=', '+', 0}
+
+var keywords = map[string]TokenType{
+	"fn":  FUNCTION,
+	"let": LET,
+}
+
+func LookupIdent(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return IDENT
+}
