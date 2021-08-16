@@ -15,9 +15,6 @@ const (
 	IDENT = "IDENT" // add, foobar, x, y, ...
 	INT   = "INT"
 
-	ASSIGN = "="
-	PLUS   = "+"
-
 	// delimeters
 	COMMA     = ","
 	SEMICOLON = ";"
@@ -27,12 +24,23 @@ const (
 	LBRACE = "{"
 	RBRACE = "}"
 
+	// Operators
+
+	ASSIGN   = "="
+	PLUS     = "+"
+	MINUS    = "-"
+	BANG     = "!"
+	ASTERISK = "*"
+	SLASH    = "/"
+	LT = "<"
+	GT = ">"
+
 	// keywords
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 )
 
-var SPECIALCHARLIST = []byte{',', ';', '(', ')', '{', '}', '=', '+', 0}
+var SPECIALCHARLIST = []byte{',', ';', '(', ')', '{', '}', '=', '+', '-', '!', '*', '/', '<', '>', 0}
 
 var keywords = map[string]TokenType{
 	"fn":  FUNCTION,
