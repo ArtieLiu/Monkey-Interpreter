@@ -92,13 +92,31 @@ func lexSpecialCharacter(l *Lexer) token.Token {
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
 	case '=':
-		tok = newToken(token.ASSIGN, l.ch)
+		nextChar := l.peek()
+		if nextChar == '=' {
+			l.readChar()
+			return token.Token{
+				Type:    token.EQ,
+				Literal: "==",
+			}
+		} else {
+			tok = newToken(token.ASSIGN, l.ch)
+		}
 	case '+':
 		tok = newToken(token.PLUS, l.ch)
 	case '-':
 		tok = newToken(token.MINUS, l.ch)
 	case '!':
-		tok = newToken(token.BANG, l.ch)
+		nextChar := l.peek()
+		if nextChar == '=' {
+			l.readChar()
+			return token.Token{
+				Type:    token.NOT_EQ,
+				Literal: "!=",
+			}
+		} else {
+			tok = newToken(token.BANG, l.ch)
+		}
 	case '*':
 		tok = newToken(token.ASTERISK, l.ch)
 	case '/':
