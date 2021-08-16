@@ -1,14 +1,20 @@
+// main.go
 package main
 
 import (
 	"fmt"
-	"monkeyinterpreter/lexer"
+	"monkeyinterpreter/repl"
+	"os"
+	"os/user"
 )
 
 func main() {
-	fmt.Println("hello")
-	input := `123abc`
-	l := lexer.New(input)
-
-	fmt.Println(l)
+	user, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Hello %s! This is the Monkey programming language!\n",
+		user.Username)
+	fmt.Printf("Feel free to type in commands\n")
+	repl.Start(os.Stdin, os.Stdout)
 }
