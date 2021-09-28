@@ -39,32 +39,39 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-func (p *Parser) parseProgram() ast.Statement {
+func (p *Parser) parseProgram() ast.Statement { // Todo understand return type
 	switch p.curToken.Type {
 	case token.LET:
-		return p.parseLetStatement()
+		return p.parseLetStatement() // ??? type of return value?
 	default:
 		return nil
 	}
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
+	// Let x = 42
+	// ^
+
 	stmt := &ast.LetStatement{
-		Token: p.curToken,
+		Token: p.curToken, // current token is "LET"
 	}
+
+	// expect next token is an identifier
 	if !p.expectPeek(token.IDENT) {
 		return nil
-	}
+	} else{
+		p.nextToken()
 
-	p.nextToken()
-
-	stmt.Name = &ast.Identifier{
-		Token: p.curToken,
-		Value: p.curToken.Literal,
+		stmt.Name = &ast.Identifier{
+			Token: p.curToken, //
+			Value: p.curToken.Literal,
+		}
 	}
 
 	if !p.peekTokenIs(token.ASSIGN) {
 		return nil
+	} else {
+		// TODO: We're skipping the expressions until we encounter a semicolon
 	}
 
 	for !p.curTokenIs(token.SEMICOLON) {
@@ -83,9 +90,5 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 }
 
 func (p *Parser) expectPeek(t token.TokenType) bool {
-	if p.peekTokenIs(t) {
-		return true
-	} else {
-		return false
-	}
+	return p.peekTokenIs(t)
 }

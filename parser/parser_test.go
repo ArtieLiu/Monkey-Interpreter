@@ -9,6 +9,7 @@ import (
 func TestLetStatements(t *testing.T) {
 	input := `
    let x = 5;
+   let y = 10;
    `
 	l := lexer.New(input)
 	p := New(l)
@@ -22,6 +23,7 @@ func TestLetStatements(t *testing.T) {
 		expectedIdentifier string
 	}{
 		{"x"},
+		{"y"},
 	}
 	for i, tt := range tests {
 		stmt := program.Statements[i]
