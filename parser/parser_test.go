@@ -6,10 +6,10 @@ import (
 	"testing"
 )
 
-func TestLetStatements(t *testing.T) {
+func TestShouldParseLetStatements(t *testing.T) {
 	input := `
-   let x  5;
-   let y = 10;
+   let x = 5;
+   let y = 5;
    `
 	l := lexer.New(input)
 	p := New(l)
@@ -26,6 +26,62 @@ func TestLetStatements(t *testing.T) {
 	}{
 		{"x"},
 		{"y"},
+	}
+	for i, tt := range tests {
+		stmt := program.Statements[i]
+		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
+			return
+		}
+	}
+}
+
+// should fail
+func TestShouldParseLetStatementsWhichIsMissingAssignToken(t *testing.T) {
+	input := `
+   let x 5;
+   `
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t,p)
+
+	if program == nil {
+		t.Fatalf("ParseProgram() returned nil")
+	}
+
+	tests := []struct {
+		expectedIdentifier string
+	}{
+	}
+	for i, tt := range tests {
+		stmt := program.Statements[i]
+		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
+			return
+		}
+	}
+}
+
+// should fail
+func TestShouldParseLetStatementsWhichContainsOnlyOneValidStatement(t *testing.T) {
+	input := `
+   let x = 5;
+   let y 5;
+   `
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t,p)
+
+	if program == nil {
+		t.Fatalf("ParseProgram() returned nil")
+	}
+
+	tests := []struct {
+		expectedIdentifier string
+	}{
+		{"x"},
 	}
 	for i, tt := range tests {
 		stmt := program.Statements[i]
