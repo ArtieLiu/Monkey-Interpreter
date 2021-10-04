@@ -35,6 +35,35 @@ func TestShouldParseLetStatements(t *testing.T) {
 	}
 }
 
+func TestShouldParseReturnStatements(t *testing.T) {
+	input := `
+   return 5;
+   return 10;
+   return 10086;
+   `
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t,p)
+
+	if len(program.Statements) != 3 {
+		t.Fatalf("Should have parsed 3 return statements, found %d", len(program.Statements))
+	}
+
+	for _, stmt := range program.Statements {
+		returnStmt, ok := stmt.(*ast.ReturnStatement)
+		if !ok {
+			t.Errorf("stmt not *ast.returnStatement. got=%T", stmt)
+			continue
+		}
+		if returnStmt.TokenLiteral() != "return" {
+			t.Errorf("returnStmt.TokenLiteral not 'return', got %q",
+				returnStmt.TokenLiteral())
+		}
+	}
+}
+
 // should fail
 func TestShouldParseLetStatementsWhichIsMissingAssignToken(t *testing.T) {
 	input := `
