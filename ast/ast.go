@@ -73,11 +73,11 @@ func (ls *LetStatement) String() string {
 
 // ExpressionStatement
 type ExpressionStatement struct {
-	Token token.Token // the first token of the expression
+	Token      token.Token // the first token of the expression
 	Expression Expression
 }
 
-func (es *ExpressionStatement) statementNode()       {}
+func (es *ExpressionStatement) statementNode() {}
 
 func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
 
@@ -104,8 +104,8 @@ func (i *Identifier) String() string { return i.Value }
 
 // ReturnStatement
 type ReturnStatement struct {
-	Token token.Token // the token.return token
-	Name  *Identifier
+	Token       token.Token // the token.return token
+	Name        *Identifier
 	ReturnValue Expression
 }
 
