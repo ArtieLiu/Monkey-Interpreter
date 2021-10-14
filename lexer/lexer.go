@@ -152,7 +152,11 @@ func newToken(tokenType token.TokenType, ch byte) token.Token {
 }
 
 func (l *Lexer) peek() byte {
-	return l.input[l.readPosition]
+	if l.readPosition >= len(l.input){
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
 }
 
 func contains(s []byte, e byte) bool {

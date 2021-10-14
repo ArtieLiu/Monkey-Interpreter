@@ -187,7 +187,7 @@ func TestShouldLexOnePlusOne(t *testing.T) {
 }
 
 func TestShouldLexNumber(t *testing.T) {
-	input := `1 `
+	input := `1`
 	tests := []struct {
 		expectedType    token.TokenType
 		expectedLiteral string
@@ -213,7 +213,7 @@ func TestShouldLexNumber(t *testing.T) {
 	}
 }
 
-func TestShouldParseTwoNubmers(t *testing.T) {
+func TestShouldLexTwoNumbers(t *testing.T) {
 	input := `42 1;`
 	tests := []struct {
 		expectedType    token.TokenType
@@ -223,6 +223,90 @@ func TestShouldParseTwoNubmers(t *testing.T) {
 		{token.INT, "1"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
+	}
+
+	l := New(input)
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Literal)
+		}
+	}
+}
+
+func TestShouldLexMultiplicationOfTwoIdentifier(t *testing.T) {
+	input := `a*b;`
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.IDENT, "a"},
+		{token.ASTERISK, "*"},
+		{token.IDENT, "b"},
+	}
+
+	l := New(input)
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Literal)
+		}
+	}
+}
+
+func TestShouldLexMultiplicationOfTwoNumber(t *testing.T) {
+	input := `1*2;`
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.INT, "1"},
+		{token.ASTERISK, "*"},
+		{token.INT, "2"},
+	}
+
+	l := New(input)
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Literal)
+		}
+	}
+}
+
+func TestShouldLexMultiplicationOfTwoNumberWithoutTrailingSemicolon(t *testing.T) {
+	input := `1*2`
+	tests := []struct {
+		expectedType    token.TokenType
+		expectedLiteral string
+	}{
+		{token.INT, "1"},
+		{token.ASTERISK, "*"},
+		{token.INT, "2"},
 	}
 
 	l := New(input)
