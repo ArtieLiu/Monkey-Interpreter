@@ -176,11 +176,9 @@ func (i *InfixExpression) String() string {
 
 	out.WriteString("(")
 	out.WriteString(i.Left.String())
-	out.WriteString(")")
 
-	out.WriteString(i.Operator)
+	out.WriteString(" " + i.Operator + " ")
 
-	out.WriteString("(")
 	out.WriteString(i.Right.String())
 	out.WriteString(")")
 
