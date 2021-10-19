@@ -171,20 +171,20 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	pre := p.prefixParseFns[p.curToken.Type]
 	exp = pre()
 
-	if p.peekToken.Type == token.SEMICOLON || p.peekToken.Type == token.EOF {
-		return exp
+	for true {
+		if (p.peekToken.Type == token.SEMICOLON) || (p.peekToken.Type == token.EOF){
+			return exp
+		}
+		if precedence == PREFIX || p.peekPrecedence() < precedence {
+			return exp
+		}
+
+		p.nextToken()
+
+		inf := p.infixParseFns[p.curToken.Type]
+
+		exp = inf(exp)
 	}
-
-	//if precedence == PREFIX {
-	if precedence == PREFIX || p.peekPrecedence() < precedence {
-		return exp
-	}
-
-	p.nextToken()
-
-	inf := p.infixParseFns[p.curToken.Type]
-
-	exp = inf(exp)
 
 	return exp
 }

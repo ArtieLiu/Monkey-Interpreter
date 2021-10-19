@@ -524,7 +524,7 @@ func TestShouldParseNegative_1(t *testing.T) {
 	}{
 		{
 			"-1 * 2 + 3",
-			"((-1) * (2) + 3)",
+			"(((-1) * 2) + 3)",
 		},
 	}
 
@@ -548,7 +548,7 @@ func TestShouldParseCompoundExpression(t *testing.T) {
 	}{
 		{
 			"-1*2+3*4",
-			"(((-1)*2)+(3*4))",
+			"(((-1) * 2) + (3 * 4))",
 		},
 	}
 
