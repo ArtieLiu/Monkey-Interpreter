@@ -6,6 +6,7 @@ import (
 	"monkeyinterpreter/lexer"
 	"monkeyinterpreter/token"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -156,7 +157,7 @@ func (p *Parser) parseExpressionStatement() ast.Statement {
 	// foo; or 5+1;
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 
-	stmt.Expression = p.parseExpression(p.curPrecedence())
+	stmt.Expression = p.parseExpression(LOWEST)
 
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
@@ -166,26 +167,15 @@ func (p *Parser) parseExpressionStatement() ast.Statement {
 }
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
-	var exp ast.Expression
 
 	pre := p.prefixParseFns[p.curToken.Type]
-	exp = pre()
+	exp := pre()
 
-	for true {
-		if (p.peekToken.Type == token.SEMICOLON) || (p.peekToken.Type == token.EOF){
-			return exp
-		}
-		if precedence == PREFIX || p.peekPrecedence() < precedence {
-			return exp
-		}
-
+	for precedence < p.peekPrecedence() {
 		p.nextToken()
-
 		inf := p.infixParseFns[p.curToken.Type]
-
 		exp = inf(exp)
 	}
-
 	return exp
 }
 
@@ -291,4 +281,31 @@ func (p *Parser) curPrecedence() int {
 		return p
 	}
 	return LOWEST
+}
+
+// for tracing
+var traceLevel int = 0
+
+const traceIdentPlaceholder string = "\t"
+
+func identLevel() string {
+	return strings.Repeat(traceIdentPlaceholder, traceLevel-1)
+}
+
+func tracePrint(fs string) {
+	fmt.Printf("%s%s\n", identLevel(), fs)
+}
+
+func incIdent() { traceLevel = traceLevel + 1 }
+func decIdent() { traceLevel = traceLevel - 1 }
+
+func trace(msg string) string {
+	incIdent()
+	tracePrint("BEGIN " + msg)
+	return msg
+}
+
+func untrace(msg string) {
+	tracePrint("END " + msg)
+	decIdent()
 }

@@ -276,6 +276,78 @@ func TestShouldParseIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+// 1 + 2;
+func TestShouldParseOnePlusOne(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"1 + 2;",
+			"(1 + 2)",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+		actual := program.String()
+		if actual != tt.expected {
+			t.Errorf("expected=%q, got=%q", tt.expected, actual)
+		}
+	}
+}
+
+// 1 + 2 + 3
+func TestShouldParseAdditionOfThreeNumbers(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"1 + 2 + 3",
+			"((1 + 2) + 3)",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+		actual := program.String()
+		if actual != tt.expected {
+			t.Errorf("expected=%q, got=%q", tt.expected, actual)
+		}
+	}
+}
+
+// 1 + 2 * 3
+func TestShouldParseAdditionAndMultiplication(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"1 + 2 * 3",
+			"(1 + (2 * 3))",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+		actual := program.String()
+		if actual != tt.expected {
+			t.Errorf("expected=%q, got=%q", tt.expected, actual)
+		}
+	}
+}
+
 // -1
 func TestShouldParseMinusOneWithoutTrailingSemicolon(t *testing.T) {
 	tests := []struct {
@@ -300,39 +372,15 @@ func TestShouldParseMinusOneWithoutTrailingSemicolon(t *testing.T) {
 	}
 }
 
-// 1 + 1;
-func TestShouldParseOnePlusOne(t *testing.T) {
+// -1 + 2
+func TestShouldParseSumOfTwoNumbersOfOppositeSign(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
 	}{
 		{
-			"1 + 1;",
-			"(1 + 1)",
-		},
-	}
-
-	for _, tt := range tests {
-		l := lexer.New(tt.input)
-		p := New(l)
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
-		actual := program.String()
-		if actual != tt.expected {
-			t.Errorf("expected=%q, got=%q", tt.expected, actual)
-		}
-	}
-}
-
-// -1 + 1
-func TestShouldParseMinusOnePlusOne(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{
-			"-1 + 1",
-			"((-1) + 1)",
+			"-1 + 2",
+			"((-1) + 2)",
 		},
 	}
 
@@ -444,39 +492,15 @@ func TestShouldParseMultiplicationOfTwoIdentifierWithOppositePrefix(t *testing.T
 	}
 }
 
-// 1 + 1 + 1
-func TestShouldParseAdditionOfThreeNumbers(t *testing.T) {
+// 1 * 2 + 3
+func TestShouldParseNegativeNumberPlusMultiplication000(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
 	}{
 		{
-			"1 + 1 + 1",
-			"(1 + (1 + 1))",
-		},
-	}
-
-	for _, tt := range tests {
-		l := lexer.New(tt.input)
-		p := New(l)
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
-		actual := program.String()
-		if actual != tt.expected {
-			t.Errorf("expected=%q, got=%q", tt.expected, actual)
-		}
-	}
-}
-
-// 1 + 2 * 3
-func TestShouldParseAdditionAndMultiplication(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{
-			"1 + 2 * 3",
-			"(1 + (2 * 3))",
+			"1 * 2 + 3",
+			"((1 * 2) + 3)",
 		},
 	}
 
@@ -550,6 +574,32 @@ func TestShouldParseCompoundExpression(t *testing.T) {
 			"-1*2+3*4",
 			"(((-1) * 2) + (3 * 4))",
 		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+		actual := program.String()
+		if actual != tt.expected {
+			t.Errorf("expected=%q, got=%q", tt.expected, actual)
+		}
+	}
+}
+
+func TestShouldParseSimpleParenthesisWrappedExpression_testing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"!-a", "(!(-a))"},
+		{"a + b + c", "((a + b) + c)"},
+		{"a + b - c", "((a + b) - c)"},
+		{"a * b * c", "((a * b) * c)"},
+		{"a * b / c", "((a * b) / c)"},
+		{"a + b / c", "(a + (b / c))"},
+		{"a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"},
 	}
 
 	for _, tt := range tests {
@@ -677,38 +727,3 @@ func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
 	}
 	return true
 }
-//{
-//"!-a",
-//"(!(-a))",
-//},
-//{
-//"a + b + c",
-//"((a + b) + c)",
-//},
-//{
-//"a + b - c",
-//"((a + b) - c)",
-//},
-//{
-//"a * b * c",
-//"((a * b) * c)",
-//},
-//{
-//"a * b / c",
-//"((a * b) / c)",
-//},
-//{
-//"a + b / c",
-//"(a + (b / c))",
-//},
-//{
-//"a + b * c + d / e - f",
-//"(((a + (b * c)) + (d / e)) - f)",
-//}, {
-//"3 + 4; -5 * 5",
-//"(3 + 4)((-5) * 5)",
-//},
-//{
-//"5 > 4 == 3 < 4",
-//"((5 > 4) == (3 < 4))",
-//},
