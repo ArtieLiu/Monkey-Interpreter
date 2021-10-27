@@ -118,10 +118,10 @@ type ReturnStatement struct {
 	ReturnValue Expression
 }
 
-func (ls *ReturnStatement) statementNode() {}
+func (rs *ReturnStatement) statementNode() {}
 
-func (ls *ReturnStatement) TokenLiteral() string {
-	return ls.Token.Literal
+func (rs *ReturnStatement) TokenLiteral() string {
+	return rs.Token.Literal
 }
 
 func (rs *ReturnStatement) String() string {
