@@ -29,7 +29,6 @@ func (il *IntegerLiteral) expressionNode()      {}
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
-// Program
 type Program struct {
 	Statements []Statement
 }
@@ -51,7 +50,6 @@ func (p *Program) String() string {
 	return out.String()
 }
 
-// LetStatement
 type LetStatement struct {
 	Token token.Token // the token.LET token
 	Name  *Identifier
@@ -80,7 +78,6 @@ func (ls *LetStatement) String() string {
 	return out.String()
 }
 
-// ExpressionStatement
 type ExpressionStatement struct {
 	Token      token.Token // the first token of the expression
 	Expression Expression
@@ -97,7 +94,6 @@ func (es *ExpressionStatement) String() string {
 	return ""
 }
 
-// Identifier
 type Identifier struct {
 	Token token.Token // the token.IDENT token Value string
 	Value string
@@ -111,7 +107,6 @@ func (i *Identifier) TokenLiteral() string {
 
 func (i *Identifier) String() string { return i.Value }
 
-// ReturnStatement
 type ReturnStatement struct {
 	Token       token.Token // the token.return token
 	Name        *Identifier
@@ -134,7 +129,6 @@ func (rs *ReturnStatement) String() string {
 	return out.String()
 }
 
-// Prefix Expression
 type PrefixExpression struct {
 	Token    token.Token
 	Operator string
