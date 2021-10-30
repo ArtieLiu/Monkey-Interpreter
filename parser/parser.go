@@ -63,6 +63,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
+	p.registerPrefix(token.IF, p.parseIfExpression)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -96,7 +97,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-func (p *Parser) parseStatement() ast.Statement { // Todo understand return type
+func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case token.LET:
 		return p.parseLetStatement()
@@ -172,6 +173,12 @@ func (p *Parser) parseExpressionStatement() ast.Statement {
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 	pre := p.prefixParseFns[p.curToken.Type]
+	if pre == nil {
+		msg := fmt.Sprintf("no prefix parse function for %s found", p.curToken.Type)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
 	exp := pre()
 
 	for precedence < p.peekPrecedence() {
@@ -209,11 +216,66 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return expression
 }
 
+func (p *Parser) parseIfExpression() ast.Expression {
+	// if (x < y) { x } else { y }
+
+	stmt := &ast.IfExpression{
+		Token: p.curToken,
+	}
+
+	if !p.peekTokenIs(token.LPAREN) {
+		msg := fmt.Sprintf("no left parenthesis found!")
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Condition = p.parseGroupedExpression()
+
+	if !p.peekTokenIs(token.LBRACE) {
+		msg := fmt.Sprintf("no left brace found!")
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Consequence = p.parseBlockStatement()
+
+	if p.peekTokenIs(token.ELSE) {
+		p.nextToken()
+		p.nextToken()
+		stmt.Alternative = p.parseBlockStatement()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseBlockStatement() *ast.BlockExpression {
+	exp := ast.BlockExpression{
+		Token:      p.curToken,
+		Statements: nil,
+	}
+
+	p.nextToken()
+
+	for p.curToken.Type != token.RBRACE {
+		stmt := p.parseStatement()
+		if nil != stmt {
+			exp.Statements = append(exp.Statements, stmt)
+		}
+		p.nextToken()
+	}
+
+	return &exp
+}
+
 func (p *Parser) parseGroupedExpression() ast.Expression {
 	p.nextToken()
 
 	expression := p.parseExpression(LOWEST)
 	if !p.peekTokenIs(token.RPAREN) {
+		msg := fmt.Sprintf("no right parthesis found")
+		p.errors = append(p.errors, msg)
 		return nil
 	}
 
