@@ -64,6 +64,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
+	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -281,6 +282,53 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 
 	p.nextToken()
 	return expression
+}
+
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	//input := `fn(x, y) { x + y; }`
+
+	stmt := &ast.FunctionLiteral{
+		Token: p.curToken,
+	}
+
+	if !p.peekTokenIs(token.LPAREN) {
+		msg := fmt.Sprintf("no left parenthesis found!")
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Parameters = p.parseFunctionParameters()
+
+	if !p.peekTokenIs(token.LBRACE) {
+		msg := fmt.Sprintf("no left brace found!")
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Body = p.parseBlockStatement()
+
+	return stmt
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	var parameters []*ast.Identifier
+
+	p.nextToken()
+	for !p.curTokenIs(token.RPAREN) {
+		if p.curTokenIs(token.COMMA) {
+			p.nextToken()
+			continue
+		}
+		parameters = append(parameters, &ast.Identifier{
+			Token: p.curToken,
+			Value: p.curToken.Literal,
+		})
+		p.nextToken()
+	}
+
+	return parameters
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
