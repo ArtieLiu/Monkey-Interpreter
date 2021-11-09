@@ -110,7 +110,6 @@ func (i *Identifier) String() string { return i.Value }
 
 type ReturnStatement struct {
 	Token       token.Token // the token.return token
-	Name        *Identifier
 	ReturnValue Expression
 }
 
