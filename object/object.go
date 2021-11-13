@@ -6,6 +6,7 @@ type ObjectType string
 
 const (
 	INTEGER_OBJ = "INTEGER"
+	BOOLEAN_OBJ = "BOOLEAN"
 )
 
 type Object interface {
@@ -15,6 +16,18 @@ type Object interface {
 
 type Integer struct {
 	Value int64
+}
+
+type Boolean struct {
+	Value bool
+}
+
+func (b *Boolean) Type() ObjectType {
+	return BOOLEAN_OBJ
+}
+
+func (b *Boolean) Inspect() string {
+	return fmt.Sprintf("%t", b.Value)
 }
 
 func (i *Integer) Type() ObjectType {
