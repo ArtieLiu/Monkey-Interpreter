@@ -226,7 +226,7 @@ func TestFunctionApplication(t *testing.T) {
 		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
 		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
 		{"fn(x) { x; }(5)", 5},
-		{"let identity = fn(x) {let foo=42; return x+foo; }; identity(5);", 47},
+		{"let init=1000; let identity = fn(x) {let foo=42; return x+foo+init; }; identity(5);", 1047},
 	}
 	for _, tt := range tests {
 		testIntegerObject(t, testEval(tt.input), tt.expected)

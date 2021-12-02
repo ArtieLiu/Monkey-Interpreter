@@ -58,14 +58,7 @@ func Eval(node ast.Node, env object.Environment) object.Object {
 		return evalIfStatement(node, env)
 
 	case *ast.LetStatement:
-		var val object.Object
-
-		if _, ok := node.Value.(*ast.FunctionLiteral); ok {
-			val = Eval(node.Value, object.NewEnvironment())
-		} else {
-			val = Eval(node.Value, env)
-		}
-
+		val := Eval(node.Value, env)
 		if isError(val) {
 			return val
 		}
