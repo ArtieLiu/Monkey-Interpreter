@@ -12,7 +12,7 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
-func Eval(node ast.Node, env *object.Environment) object.Object {
+func Eval(node ast.Node, env object.Environment) object.Object {
 	switch node := node.(type) {
 	// Statements
 	case *ast.Program:
@@ -58,11 +58,20 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIfStatement(node, env)
 
 	case *ast.LetStatement:
-		val := Eval(node.Value, env)
-		if isError(val) {
-			return val
+		_, ok := node.Value.(*ast.FunctionLiteral)
+		if ok {
+			val := Eval(node.Value, object.NewEnvironment())
+			if isError(val) {
+				return val
+			}
+			env.Set(node.Name.Value, val)
+		} else {
+			val := Eval(node.Value, env)
+			if isError(val) {
+				return val
+			}
+			env.Set(node.Name.Value, val)
 		}
-		env.Set(node.Name.Value, val)
 
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env)
@@ -116,7 +125,7 @@ func unwrapReturnValue(obj object.Object) object.Object {
 	return obj
 }
 
-func extendedFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
+func extendedFunctionEnv(fn *object.Function, args []object.Object) object.Environment {
 	env := object.NewEnclosedEnvironment(fn.Env)
 	for paramIdx, param := range fn.Parameters {
 		env.Set(param.Value, args[paramIdx])
@@ -124,7 +133,7 @@ func extendedFunctionEnv(fn *object.Function, args []object.Object) *object.Envi
 	return env
 }
 
-func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Object {
+func evalExpressions(exps []ast.Expression, env object.Environment) []object.Object {
 	var result []object.Object
 	for _, e := range exps {
 		evaluated := Eval(e, env)
@@ -136,7 +145,7 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 	return result
 }
 
-func evalProgram(stmts []ast.Statement, env *object.Environment) object.Object {
+func evalProgram(stmts []ast.Statement, env object.Environment) object.Object {
 	var result object.Object
 
 	for _, statement := range stmts {
@@ -153,12 +162,15 @@ func evalProgram(stmts []ast.Statement, env *object.Environment) object.Object {
 	return result
 }
 
-func evalBlockStatements(statements []ast.Statement, env *object.Environment) object.Object {
+func evalBlockStatements(statements []ast.Statement, env object.Environment) object.Object {
 	var result object.Object
 
 	for _, statement := range statements {
 		result = Eval(statement, env)
 
+		if result == nil {
+			continue
+		}
 		if result.Type() == object.ERROR_OBJ || result.Type() == object.RETURN_VALUE_OBJ {
 			return result
 		}
@@ -228,7 +240,7 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 	return &object.Integer{Value: -value}
 }
 
-func evalIfStatement(ie *ast.IfExpression, env *object.Environment) object.Object {
+func evalIfStatement(ie *ast.IfExpression, env object.Environment) object.Object {
 	condition := Eval(ie.Condition, env)
 	if isTruthy(condition) {
 		return Eval(ie.Consequence, env)
@@ -252,7 +264,7 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 	}
 }
 
-func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
+func evalIdentifier(node *ast.Identifier, env object.Environment) object.Object {
 	value, ok := env.Get(node.Token.Literal)
 	if !ok {
 		return newError("identifier not found: %s", node.Token.Literal)

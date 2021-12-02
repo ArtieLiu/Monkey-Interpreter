@@ -84,7 +84,7 @@ func (e Error) Inspect() string {
 type Function struct {
 	Parameters []*ast.Identifier
 	Body       *ast.BlockExpression
-	Env        *Environment
+	Env        Environment
 }
 
 func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
