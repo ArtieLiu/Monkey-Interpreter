@@ -58,20 +58,18 @@ func Eval(node ast.Node, env object.Environment) object.Object {
 		return evalIfStatement(node, env)
 
 	case *ast.LetStatement:
-		_, ok := node.Value.(*ast.FunctionLiteral)
-		if ok {
-			val := Eval(node.Value, object.NewEnvironment())
-			if isError(val) {
-				return val
-			}
-			env.Set(node.Name.Value, val)
+		var val object.Object
+
+		if _, ok := node.Value.(*ast.FunctionLiteral); ok {
+			val = Eval(node.Value, object.NewEnvironment())
 		} else {
-			val := Eval(node.Value, env)
-			if isError(val) {
-				return val
-			}
-			env.Set(node.Name.Value, val)
+			val = Eval(node.Value, env)
 		}
+
+		if isError(val) {
+			return val
+		}
+		env.Set(node.Name.Value, val)
 
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env)
