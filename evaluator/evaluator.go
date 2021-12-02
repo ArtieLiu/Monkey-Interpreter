@@ -96,6 +96,35 @@ func Eval(node ast.Node, env object.Environment) object.Object {
 	return nil
 }
 
+func evalProgram(stmts []ast.Statement, env object.Environment) object.Object {
+	var result object.Object
+
+	for _, statement := range stmts {
+		result = Eval(statement, env)
+
+		switch result := result.(type) {
+		case *object.ReturnValue:
+			return result.Value
+		case *object.Error:
+			return result
+		}
+	}
+
+	return result
+}
+
+func evalExpressions(exps []ast.Expression, env object.Environment) []object.Object {
+	var result []object.Object
+	for _, e := range exps {
+		evaluated := Eval(e, env)
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+		result = append(result, evaluated)
+	}
+	return result
+}
+
 func applyFunction(fn object.Object, args []object.Object) object.Object {
 	function, ok := fn.(*object.Function)
 	if !ok {
@@ -122,35 +151,6 @@ func extendedFunctionEnv(fn *object.Function, args []object.Object) object.Envir
 		env.Set(param.Value, args[paramIdx])
 	}
 	return env
-}
-
-func evalExpressions(exps []ast.Expression, env object.Environment) []object.Object {
-	var result []object.Object
-	for _, e := range exps {
-		evaluated := Eval(e, env)
-		if isError(evaluated) {
-			return []object.Object{evaluated}
-		}
-		result = append(result, evaluated)
-	}
-	return result
-}
-
-func evalProgram(stmts []ast.Statement, env object.Environment) object.Object {
-	var result object.Object
-
-	for _, statement := range stmts {
-		result = Eval(statement, env)
-
-		switch result := result.(type) {
-		case *object.ReturnValue:
-			return result.Value
-		case *object.Error:
-			return result
-		}
-	}
-
-	return result
 }
 
 func evalBlockStatements(statements []ast.Statement, env object.Environment) object.Object {
