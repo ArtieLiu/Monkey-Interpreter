@@ -36,8 +36,10 @@ func (l *Lexer) NextToken() token.Token {
 		tok = lexSpecialCharacter(l)
 	} else if isNumeric(l.ch) {
 		tok = lexNumber(l)
-	} else {
+	} else if isLetter(l.ch) {
 		tok = lexIdentifier(l)
+	} else {
+		tok = newToken(token.ILLEGAL, l.ch)
 	}
 
 	l.readChar()
@@ -152,7 +154,7 @@ func newToken(tokenType token.TokenType, ch byte) token.Token {
 }
 
 func (l *Lexer) peek() byte {
-	if l.readPosition >= len(l.input){
+	if l.readPosition >= len(l.input) {
 		return 0
 	} else {
 		return l.input[l.readPosition]
