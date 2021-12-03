@@ -32,13 +32,16 @@ func (l *Lexer) NextToken() token.Token {
 
 	skipWhiteSpaceAndNewline(l)
 
-	if isSpecialCharacter(l.ch) {
+	switch {
+	case isSpecialCharacter(l.ch):
 		tok = lexSpecialCharacter(l)
-	} else if isNumeric(l.ch) {
+	case isNumeric(l.ch):
 		tok = lexNumber(l)
-	} else if isLetter(l.ch) {
+	case isLetter(l.ch):
 		tok = lexIdentifier(l)
-	} else {
+	case l.ch == '"':
+		tok = readString(l)
+	default:
 		tok = newToken(token.ILLEGAL, l.ch)
 	}
 
@@ -127,8 +130,6 @@ func lexSpecialCharacter(l *Lexer) token.Token {
 		tok = newToken(token.LT, l.ch)
 	case '>':
 		tok = newToken(token.GT, l.ch)
-	case '"':
-		tok = lexStringToken(l)
 	case 0:
 		tok.Type = token.EOF
 		tok.Literal = ""
@@ -136,7 +137,7 @@ func lexSpecialCharacter(l *Lexer) token.Token {
 	return tok
 }
 
-func lexStringToken(l *Lexer) token.Token {
+func readString(l *Lexer) token.Token {
 	var charArray []byte
 
 	l.readChar()

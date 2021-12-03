@@ -610,6 +610,7 @@ func TestShouldLexString(t *testing.T) {
 	}{
 		{token.STRING, "foobar"},
 		{token.STRING, "foo bar"},
+		{token.EOF, ""},
 	}
 
 	l := New(input)
