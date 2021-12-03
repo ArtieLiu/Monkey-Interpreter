@@ -127,11 +127,30 @@ func lexSpecialCharacter(l *Lexer) token.Token {
 		tok = newToken(token.LT, l.ch)
 	case '>':
 		tok = newToken(token.GT, l.ch)
+	case '"':
+		tok = lexStringToken(l)
 	case 0:
 		tok.Type = token.EOF
 		tok.Literal = ""
 	}
 	return tok
+}
+
+func lexStringToken(l *Lexer) token.Token {
+	var charArray []byte
+
+	l.readChar()
+	for l.ch != '"' {
+		charArray = append(charArray, l.ch)
+		l.readChar()
+	}
+
+	l.readChar()
+
+	return token.Token{
+		Type:    token.STRING,
+		Literal: string(charArray),
+	}
 }
 
 func isLetter(ch byte) bool {
