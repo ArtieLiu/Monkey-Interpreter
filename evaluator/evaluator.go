@@ -12,6 +12,25 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
+var builtins = map[string]*object.Builtin{
+	"len": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			l := len(args)
+			if l != 1 {
+				return newError("wrong number of arguments. got=%d, want=1", l)
+			}
+			argument := args[0]
+			switch argument.(type) {
+			case *object.String:
+				s := argument.(*object.String)
+				return &object.Integer{Value: int64(len(s.Value))}
+			default:
+				return newError("argument to `len` not supported, got %s", argument.Type())
+			}
+		},
+	},
+}
+
 func Eval(node ast.Node, env object.Environment) object.Object {
 	switch node := node.(type) {
 	// Statements
@@ -129,15 +148,19 @@ func evalExpressions(exps []ast.Expression, env object.Environment) []object.Obj
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
+	switch fn := fn.(type) {
+
+	case *object.Function:
+		extendedEnv := extendedFunctionEnv(fn, args)
+		evaluated := Eval(fn.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
+
+	case *object.Builtin:
+		return fn.Fn(args...)
+
+	default:
 		return newError("not a function: %s", fn.Type())
 	}
-
-	extendedEnv := extendedFunctionEnv(function, args)
-	evaluated := Eval(function.Body, extendedEnv)
-
-	return unwrapReturnValue(evaluated)
 }
 
 func unwrapReturnValue(obj object.Object) object.Object {
@@ -276,11 +299,15 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 }
 
 func evalIdentifier(node *ast.Identifier, env object.Environment) object.Object {
-	value, ok := env.Get(node.Token.Literal)
-	if !ok {
-		return newError("identifier not found: %s", node.Token.Literal)
+	if value, ok := env.Get(node.Value); ok {
+		return value
 	}
-	return value
+
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+
+	return newError("identifier not found: %s", node.Value)
 }
 
 func isTruthy(obj object.Object) bool {
