@@ -146,8 +146,6 @@ func readString(l *Lexer) token.Token {
 		l.readChar()
 	}
 
-	l.readChar()
-
 	return token.Token{
 		Type:    token.STRING,
 		Literal: string(charArray),
