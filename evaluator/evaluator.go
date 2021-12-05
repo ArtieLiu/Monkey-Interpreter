@@ -120,9 +120,31 @@ func Eval(node ast.Node, env object.Environment) object.Object {
 			return elements[0]
 		}
 		return &object.Array{Elements: elements}
+
+	case *ast.IndexExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+
+		index := Eval(node.Index, env)
+		if isError(index) {
+			return index
+		}
+		return evalIndexExpression(left, index)
 	}
 
 	return nil
+}
+
+func evalIndexExpression(left object.Object, index object.Object) object.Object {
+	idx := index.(*object.Integer).Value
+	array := left.(*object.Array).Elements
+	max := len(array) - 1
+	if idx < 0 || int(idx) > max {
+		return NULL
+	}
+	return array[idx]
 }
 
 func evalProgram(stmts []ast.Statement, env object.Environment) object.Object {
