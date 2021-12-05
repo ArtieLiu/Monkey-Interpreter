@@ -341,24 +341,8 @@ func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 		Function:  function,
 		Arguments: nil,
 	}
-	exp.Arguments = p.parseCallArguments()
+	exp.Arguments = p.parseExpressionList(token.RPAREN)
 	return exp
-}
-
-func (p *Parser) parseCallArguments() []ast.Expression {
-	var args []ast.Expression
-
-	p.nextToken()
-	for !p.curTokenIs(token.RPAREN) {
-		if p.curTokenIs(token.COMMA) {
-			p.nextToken()
-			continue
-		}
-		args = append(args, p.parseExpression(LOWEST))
-		p.nextToken()
-	}
-
-	return args
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
@@ -396,27 +380,11 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 		Token: p.curToken,
 	}
 
-	elements := p.parseArrayElements()
+	elements := p.parseExpressionList(token.RBRACKET)
 
 	arrayLiteral.Elements = elements
 
 	return arrayLiteral
-}
-
-func (p *Parser) parseArrayElements() []ast.Expression {
-	var elements []ast.Expression
-
-	p.nextToken()
-	for !p.curTokenIs(token.RBRACKET) {
-		if p.curTokenIs(token.COMMA) {
-			p.nextToken()
-			continue
-		}
-		elements = append(elements, p.parseExpression(LOWEST))
-		p.nextToken()
-	}
-
-	return elements
 }
 
 func (p *Parser) parseBoolean() ast.Expression {
@@ -424,6 +392,22 @@ func (p *Parser) parseBoolean() ast.Expression {
 		Token: p.curToken,
 		Value: p.curTokenIs(token.TRUE),
 	}
+}
+
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	var list []ast.Expression
+
+	p.nextToken()
+	for !p.curTokenIs(end) {
+		if p.curTokenIs(token.COMMA) {
+			p.nextToken()
+			continue
+		}
+		list = append(list, p.parseExpression(LOWEST))
+		p.nextToken()
+	}
+
+	return list
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {
