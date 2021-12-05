@@ -20,10 +20,12 @@ const (
 	COMMA     = ","
 	SEMICOLON = ";"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
+	LPAREN   = "("
+	RPAREN   = ")"
+	LBRACE   = "{"
+	RBRACE   = "}"
+	LBRACKET = "["
+	RBRACKET = "]"
 
 	// Operators
 
@@ -48,7 +50,7 @@ const (
 	RETURN   = "RETURN"
 )
 
-var SPECIALCHARLIST = []byte{',', ';', '(', ')', '{', '}', '=', '+', '-', '!', '*', '/', '<', '>', 0}
+var SPECIALCHARLIST = []byte{',', ';', '(', ')', '{', '}', '[', ']', '=', '+', '-', '!', '*', '/', '<', '>', 0}
 
 var keywords = map[string]TokenType{
 	"fn":     FUNCTION,
