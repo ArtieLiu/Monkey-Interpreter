@@ -12,102 +12,6 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
-var builtins = map[string]*object.Builtin{
-	"len": &object.Builtin{
-		Fn: func(args ...object.Object) object.Object {
-			l := len(args)
-			if l != 1 {
-				return newError("wrong number of arguments. got=%d, want=1", l)
-			}
-			argument := args[0]
-			switch argument.(type) {
-			case *object.String:
-				s := argument.(*object.String)
-				return &object.Integer{Value: int64(len(s.Value))}
-			case *object.Array:
-				elements := argument.(*object.Array).Elements
-				return &object.Integer{Value: int64(len(elements))}
-			default:
-				return newError("argument to `len` not supported, got %s", argument.Type())
-			}
-		},
-	},
-
-	"first": &object.Builtin{
-		Fn: func(args ...object.Object) object.Object {
-			if l := len(args); l != 1 {
-				return newError("wrong number of arguments. got=%d, want=1", l)
-			}
-			if typ := args[0].Type(); typ != object.ARRAY_OBJ {
-				return newError("argument to `first` must be Array, got %s", typ)
-			}
-
-			array := args[0]
-			elements := array.(*object.Array).Elements
-			size := len(elements)
-			if size == 0 {
-				return nil
-			}
-			return elements[0]
-		},
-	},
-
-	"last": &object.Builtin{
-		Fn: func(args ...object.Object) object.Object {
-			if l := len(args); l != 1 {
-				return newError("wrong number of arguments. got=%d, want=1", l)
-			}
-			if typ := args[0].Type(); typ != object.ARRAY_OBJ {
-				return newError("argument to `last` must be Array, got %s", typ)
-			}
-
-			array := args[0]
-			elements := array.(*object.Array).Elements
-			size := len(elements)
-			if size == 0 {
-				return nil
-			}
-			return elements[size-1]
-		},
-	},
-
-	"rest": &object.Builtin{
-		Fn: func(args ...object.Object) object.Object {
-			if l := len(args); l != 1 {
-				return newError("wrong number of arguments. got=%d, want=2", l)
-			}
-			if typ := args[0].Type(); typ != object.ARRAY_OBJ {
-				return newError("argument to `rest` must be Array, got %s", typ)
-			}
-
-			array := args[0]
-			elements := array.(*object.Array).Elements
-			size := len(elements)
-			if size == 0 {
-				return nil
-			}
-			return &object.Array{Elements: elements[1:size]}
-		},
-	},
-
-	"push": &object.Builtin{
-		Fn: func(args ...object.Object) object.Object {
-
-			if l := len(args); l != 2 {
-				return newError("wrong number of arguments. got=%d, want=2", l)
-			}
-			if typ := args[0].Type(); typ != object.ARRAY_OBJ {
-				return newError("first argument to `push` must be Array, got %s", typ)
-			}
-
-			array := args[0]
-			elements := array.(*object.Array).Elements
-			elements = append(elements, args[1])
-			return &object.Array{Elements: elements}
-		},
-	},
-}
-
 func Eval(node ast.Node, env object.Environment) object.Object {
 	switch node := node.(type) {
 	// Statements
@@ -209,19 +113,12 @@ func Eval(node ast.Node, env object.Environment) object.Object {
 			return index
 		}
 		return evalIndexExpression(left, index)
+
+	case *ast.HashLiteral:
+		return evalHashLiteral(node, env)
 	}
 
 	return nil
-}
-
-func evalIndexExpression(left object.Object, index object.Object) object.Object {
-	idx := index.(*object.Integer).Value
-	array := left.(*object.Array).Elements
-	max := len(array) - 1
-	if idx < 0 || int(idx) > max {
-		return NULL
-	}
-	return array[idx]
 }
 
 func evalProgram(stmts []ast.Statement, env object.Environment) object.Object {
@@ -414,6 +311,65 @@ func evalIdentifier(node *ast.Identifier, env object.Environment) object.Object 
 	}
 
 	return newError("identifier not found: %s", node.Value)
+}
+
+func evalHashLiteral(node *ast.HashLiteral, env object.Environment) object.Object {
+	hashPairs := make(map[object.HashKey]object.HashPair)
+
+	for keyExpression, valueExpression := range node.Pairs {
+		key := Eval(keyExpression, env)
+		if isError(key) {
+			return key
+		}
+
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return newError("unusable as hash key: %s", keyExpression.TokenLiteral())
+		}
+
+		value := Eval(valueExpression, env)
+		if isError(key) {
+			return key
+		}
+
+		hashed := hashKey.HashKey()
+		hashPairs[hashed] = object.HashPair{
+			Key:   key,
+			Value: value,
+		}
+	}
+
+	return &object.Hash{Pairs: hashPairs}
+}
+
+func evalIndexExpression(left object.Object, index object.Object) object.Object {
+
+	switch left.(type) {
+	case *object.Array:
+		idx := index.(*object.Integer).Value
+		array := left.(*object.Array).Elements
+		max := len(array) - 1
+		if idx < 0 || int(idx) > max {
+			return NULL
+		}
+		return array[idx]
+
+	case *object.Hash:
+		hashKey, ok := index.(object.Hashable)
+		if !ok {
+			return newError("unusable as hash key: %s", index.Type())
+		}
+
+		hash := left.(*object.Hash).Pairs
+		hashValue := hash[hashKey.HashKey()]
+		if hashValue.Key == nil {
+			return NULL
+		}
+		return hashValue.Value
+
+	default:
+		return NULL
+	}
 }
 
 func isTruthy(obj object.Object) bool {

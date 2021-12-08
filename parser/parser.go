@@ -22,6 +22,7 @@ const (
 )
 
 var precedence = map[token.TokenType]int{
+	token.COLON:    LOWEST,
 	token.EQ:       EQUALS,
 	token.NOT_EQ:   EQUALS,
 	token.LT:       LESSGREATER,
@@ -70,6 +71,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
+	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -429,6 +431,34 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	}
 
 	return list
+}
+
+func (p *Parser) parseHashLiteral() ast.Expression {
+	var pairs = make(map[ast.Expression]ast.Expression)
+	hashLiteral := ast.HashLiteral{Token: p.curToken}
+
+	for !p.peekTokenIs(token.RBRACE) {
+		p.nextToken()
+		if p.curTokenIs(token.COMMA) {
+			p.nextToken()
+		}
+
+		key := p.parseExpression(LOWEST)
+		if !p.peekTokenIs(token.COLON) {
+			return nil
+		}
+
+		p.nextToken()
+		p.nextToken()
+		value := p.parseExpression(LOWEST)
+
+		pairs[key] = value
+	}
+	p.nextToken()
+
+	hashLiteral.Pairs = pairs
+
+	return &hashLiteral
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {

@@ -19,6 +19,7 @@ const (
 	// delimeters
 	COMMA     = ","
 	SEMICOLON = ";"
+	COLON     = ":"
 
 	LPAREN   = "("
 	RPAREN   = ")"
@@ -50,7 +51,7 @@ const (
 	RETURN   = "RETURN"
 )
 
-var SPECIALCHARLIST = []byte{',', ';', '(', ')', '{', '}', '[', ']', '=', '+', '-', '!', '*', '/', '<', '>', 0}
+var SPECIALCHARLIST = []byte{',', ';', ':', '(', ')', '{', '}', '[', ']', '=', '+', '-', '!', '*', '/', '<', '>', 0}
 
 var keywords = map[string]TokenType{
 	"fn":     FUNCTION,
