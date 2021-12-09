@@ -1,6 +1,9 @@
 package evaluator
 
-import "monkeyinterpreter/object"
+import (
+	"fmt"
+	"monkeyinterpreter/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": &object.Builtin{
@@ -94,6 +97,15 @@ var builtins = map[string]*object.Builtin{
 			elements := array.(*object.Array).Elements
 			elements = append(elements, args[1])
 			return &object.Array{Elements: elements}
+		},
+	},
+
+	"put": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+			return NULL
 		},
 	},
 }
